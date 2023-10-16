@@ -1,0 +1,31 @@
+# choose golang image and give it a name so that it can be referenced later 
+FROM golang:1.21.1 as build_jobs-api
+
+ENV CGO_ENABLED 0
+ARG BUILD_REF
+
+# create s dir in docker container file system
+RUN mkdir -p /service
+# copy everything ( except items mentioned in .dockerignore file) from local context( physical machine) into container in /service dir
+COPY . /service
+
+# set my working dir in docker conatiner system
+WORKDIR /service/app/services/jobs-api
+# lets build our go binary from source code in dcoker container
+RUN go build -ldflags "-X main.build=${BUILD_REF}"
+
+# To create final image, we need base image, alpine:3.18.4 is our base image 
+# Run the Go Binary in Alpine.
+FROM alpine:3.18.4
+ARG BUILD_REF
+
+COPY --from=build_jobs-api /service/app/services/jobs-api/jobs-api /service/jobs-api
+WORKDIR /service
+CMD ["./jobs-api"]
+
+LABEL org.opencontainers.image.created="05102023_1300" \
+    org.opencontainers.image.title="jobs-api" \
+    org.opencontainers.image.authors="vikas kumar" \
+    org.opencontainers.image.source="https://github.com/vikaskumar1187/publisher" \
+    org.opencontainers.image.revision="${BUILD_REF}" \
+    org.opencontainers.image.vendor="self"
