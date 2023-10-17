@@ -4,8 +4,15 @@ FROM golang:1.21.1 as build_jobs-api
 ENV CGO_ENABLED 0
 ARG BUILD_REF
 
-# create s dir in docker container file system
-RUN mkdir -p /service
+# Create the service directory and the copy the module files first and then
+# download the dependencies. If this doesn't change, we won't need to do this
+# again in future builds.
+# RUN mkdir /service
+# COPY go.* /service/
+# WORKDIR /service
+# RUN go mod download
+
+
 # copy everything ( except items mentioned in .dockerignore file) from local context( physical machine) into container in /service dir
 COPY . /service
 

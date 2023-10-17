@@ -13,57 +13,65 @@ tidy:
 	go mod tidy
 	go mod vendor
 
-VERSION:= 1.0
+
+# =====================================================================================================================================================
+# Define dependencies
+
+GOLANG          := golang:1.21
+ALPINE          := alpine:3.18
+KIND            := kindest/node:v1.28.0
+POSTGRES        := postgres:16.0-alpine3.18
+ZIPKIN          := openzipkin/zipkin:2.24
+
+TELEPRESENCE    := datawire/tel2:2.13.1
+VAULT           := hashicorp/vault:1.13
+
+KIND_CLUSTER    := publisher-cluster
+NAMESPACE       := jobs-system
+PODNAME			:= jobs-pod
+APP             := jobs
+BASE_IMAGE_NAME := publisher/service
+SERVICE_NAME    := jobs-api
+VERSION         := 0.0.1
+SERVICE_IMAGE   := $(BASE_IMAGE_NAME)/$(SERVICE_NAME):$(VERSION)
+#VERSION        := "0.0.1-$(shell git rev-parse --short HEAD)"
+
+# =====================================================================================================================================================
+# Build docker image/s from our source code
+jobs-api:
+	docker build --progress=plain -t $(SERVICE_IMAGE) --build-arg BUILD_REF="$(VERSION)" -f zarf/docker/dockerfile.jobs-api .
 
 all: jobs-api
+# =====================================================================================================================================================
+dev-up-local:
+	kind create cluster \
+		--image $(KIND) \
+		--name $(KIND_CLUSTER) \
+		--config zarf/k8s/dev/kind-config.yaml
 
-# Build docker image from our source code
-jobs-api:
-	docker build --progress=plain -t jobs-api-amd64:$(VERSION) --build-arg BUILD_REF="$(VERSION)" -f zarf/docker/dockerfile.jobs-api .
+	kubectl wait --timeout=120s --namespace=local-path-storage --for=condition=Available deployment/local-path-provisioner
 
-# Running from within k8s/
-KIND_CLUSTER:= publisher-cluster
-API_SERVICE_NAMESPACE:= jobs-system
-API_SERVICE_PODNAME:= jobs-pod
+dev-up: dev-up-local
 
-kind-up:
-	kind create cluster --image kindest/node:v1.28.0 --name $(KIND_CLUSTER) --config zarf/k8s/kind/kind-config.yaml
-
-kind-down:
+dev-down-local:
 	kind delete cluster --name $(KIND_CLUSTER)
 
-kind-load:
-	kind load docker-image jobs-api-amd64:$(VERSION) --name $(KIND_CLUSTER)
-
-kind-apply:
-	kustomize build zarf/k8s/kind/jobs-pod | kubectl apply -f -
-#kubectl apply -f zarf/k8s/base/jobs-pod/base-service.yaml
-
-kind-status:
+dev-down:
+	kind delete cluster --name $(KIND_CLUSTER)
+# =====================================================================================================================================================
+dev-status:
 	kubectl get nodes -o wide
 	kubectl get svc -o wide
 	kubectl get pods -o wide --watch --all-namespaces
+# =====================================================================================================================================================
+dev-load:
+	kind load docker-image $(SERVICE_IMAGE) --name $(KIND_CLUSTER)
 
-kind-status-publisher:
-	kubectl get pods -o wide --watch --namespace=$(API_SERVICE_NAMESPACE)
+dev-apply:
+	kustomize build zarf/k8s/dev/database | kubectl apply -f -
+	kubectl rollout status --namespace=$(NAMESPACE) --watch --timeout=120s sts/database
 
-kind-status-full:
-	kubectl describe pod -lapp=jobs
+	kustomize build zarf/k8s/dev/sales | kubectl apply -f -
+	kubectl wait pods --namespace=$(NAMESPACE) --selector app=$(APP) --for=condition=Ready
 
-kind-logs:
-	kubectl logs -lapp=jobs --all-containers=true -f --tail=100 --namespace=$(API_SERVICE_NAMESPACE)
-
-kind-update: all kind-load kind-restart
-
-kind-update-apply: all kind-load kind-apply
-
-kind-restart:
-	kubectl rollout restart deployment $(API_SERVICE_PODNAME) --namespace=$(API_SERVICE_NAMESPACE)
-
-kind-describe:
-	kubectl describe pod -l app=jobs --namespace=$(API_SERVICE_NAMESPACE)
-
-kind-delete:
-#kubectl delete -f zarf/k8s/base/api-service-pod/base-service.yaml
-	kustomize build zarf/k8s/kind/jobs-pod | kubectl delete -f -
 
