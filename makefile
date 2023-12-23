@@ -1,6 +1,9 @@
 run-local:
 	go run .\app\services\jobs-api\main.go
 
+run-local-help:
+	go run .\app\services\jobs-api\main.go --help
+	
 test:
 	go test ./... -count=1
 	staticcheck ./...
