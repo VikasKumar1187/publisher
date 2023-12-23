@@ -50,6 +50,7 @@ dev-up-local:
 
 dev-up: dev-up-local
 
+
 dev-down-local:
 	kind delete cluster --name $(KIND_CLUSTER)
 
@@ -66,5 +67,6 @@ dev-load:
 dev-apply:
 	kustomize build zarf/k8s/dev/jobs | kubectl apply -f -
 	kubectl wait pods --namespace=$(NAMESPACE) --selector app=$(APP) --for=condition=Ready
-
-
+# =====================================================================================================================================================
+dev-logs:
+	kubectl logs --namespace=$(NAMESPACE) -l app=$(APP) --all-containers=true -f --tail=100 --max-log-requests=6
