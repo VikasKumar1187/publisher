@@ -24,4 +24,24 @@ spec:
       hostNetwork: true
       containers:
         - name: jobs-api
-          image: jobs-api-image # place holder for actual image name
+          #image: jobs-api-image # place holder for actual image name
+          resources:
+            requests:
+              cpu: "1500m" # I need access to 1.5 core on the node.
+              memory: 500Mi
+            limits:
+              cpu: "1500m" # Execute instructions 150ms/200ms on my 1.5 core.
+              memory: 500Mi
+
+          volumeMounts:
+            - name: vaults
+              mountPath: /vault
+
+        - name: metrics
+          resources:
+            requests:
+              cpu: "500m" # I need access to 1/2 core on the node.
+              memory: 250Mi
+            limits:
+              cpu: "500m" # Execute instructions 50ms/100ms on my 1/2 core.
+              memory: 250Mi
