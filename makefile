@@ -70,7 +70,11 @@ dev-apply:
 
 dev-restart:
 	kubectl rollout restart deployment $(PODNAME) --namespace=$(NAMESPACE)
-	
+
+dev-update: all dev-load dev-restart
+
+dev-update-apply: all dev-load dev-apply
+
 # =====================================================================================================================================================
 dev-logs:
 	kubectl logs --namespace=$(NAMESPACE) -l app=$(APP) --all-containers=true -f --tail=100 --max-log-requests=6
