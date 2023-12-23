@@ -32,16 +32,3 @@ spec:
             limits:
               cpu: "1500m" # Execute instructions 150ms/200ms on my 1.5 core.
               memory: 500Mi
-
-          volumeMounts:
-            - name: vaults
-              mountPath: /vault
-
-        - name: metrics
-          resources:
-            requests:
-              cpu: "500m" # I need access to 1/2 core on the node.
-              memory: 250Mi
-            limits:
-              cpu: "500m" # Execute instructions 50ms/100ms on my 1/2 core.
-              memory: 250Mi
