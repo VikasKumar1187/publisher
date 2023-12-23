@@ -24,7 +24,6 @@ spec:
       hostNetwork: true
       containers:
         - name: jobs-api
-          #image: jobs-api-image # place holder for actual image name
           resources:
             requests:
               cpu: "1500m" # I need access to 1.5 core on the node.

@@ -24,7 +24,7 @@ VAULT           := hashicorp/vault:1.13
 
 KIND_CLUSTER    := publisher-cluster
 NAMESPACE       := publisher-system
-PODNAME			:= jobs-pod
+DEPLOYMENTNAME	:= jobs-pod
 APP             := jobs
 BASE_IMAGE_NAME := publisher/service
 SERVICE_NAME    := jobs-api
@@ -69,7 +69,7 @@ dev-apply:
 	kubectl wait pods --namespace=$(NAMESPACE) --selector app=$(APP) --for=condition=Ready
 
 dev-restart:
-	kubectl rollout restart deployment $(PODNAME) --namespace=$(NAMESPACE)
+	kubectl rollout restart deployment $(DEPLOYMENTNAME) --namespace=$(NAMESPACE)
 
 dev-update: all dev-load dev-restart
 
@@ -78,3 +78,9 @@ dev-update-apply: all dev-load dev-apply
 # =====================================================================================================================================================
 dev-logs:
 	kubectl logs --namespace=$(NAMESPACE) -l app=$(APP) --all-containers=true -f --tail=100 --max-log-requests=6
+
+dev-describe-deployment:
+	kubectl describe deployment --namespace=$(NAMESPACE) $(DEPLOYMENTNAME)
+
+dev-describe-jobs:
+	kubectl describe pod --namespace=$(NAMESPACE) -l app=$(APP)
