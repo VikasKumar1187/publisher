@@ -67,6 +67,10 @@ dev-load:
 dev-apply:
 	kustomize build zarf/k8s/dev/jobs | kubectl apply -f -
 	kubectl wait pods --namespace=$(NAMESPACE) --selector app=$(APP) --for=condition=Ready
+
+dev-restart:
+	kubectl rollout restart deployment $(PODNAME) --namespace=$(NAMESPACE)
+	
 # =====================================================================================================================================================
 dev-logs:
 	kubectl logs --namespace=$(NAMESPACE) -l app=$(APP) --all-containers=true -f --tail=100 --max-log-requests=6
