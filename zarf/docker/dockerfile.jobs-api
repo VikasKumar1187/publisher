@@ -1,9 +1,11 @@
-# choose golang image and give it a name so that it can be referenced later 
+# This line specifies the base image to use for the build stage. In this case, it's the official Golang image with version 1.21.1.
+# And give it a name so that it can be referenced later 
 FROM golang:1.21.1 as build_jobs-api
 
 ENV CGO_ENABLED 0
 ARG BUILD_REF
 
+# Needed only when we dont have vendor dir and all subsequent packages in it
 # Create the service directory and the copy the module files first and then
 # download the dependencies. If this doesn't change, we won't need to do this
 # again in future builds.
@@ -13,20 +15,25 @@ ARG BUILD_REF
 # RUN go mod download
 
 
-# copy everything ( except items mentioned in .dockerignore file) from local context( physical machine) into container in /service dir
+# Copies the entire local context (excluding items mentioned in .dockerignore) into the /service directory of the Docker image.
 COPY . /service
 
-# set my working dir in docker conatiner system
+# Sets the working directory within the Docker image to the specified path
 WORKDIR /service/app/services/jobs-api
-# lets build our go binary from source code in dcoker container
+# Builds the Go binary from the source code. The -ldflags flag is used to set the value of the main.build variable, 
+# typically used to store version or build information.
 RUN go build -ldflags "-X main.build=${BUILD_REF}"
 
-# To create final image, we need base image, alpine:3.18.4 is our base image 
-# Run the Go Binary in Alpine.
+# Specifies a new stage with a smaller base image (alpine:3.18.4) for the final image.
 FROM alpine:3.18.4
 ARG BUILD_REF
 
+# Copies the built Go binary (jobs-api) from the build stage to the /service directory of the new stage.
 COPY --from=build_jobs-api /service/app/services/jobs-api/jobs-api /service/jobs-api
+
+# Note : This Dockerfile follows a multi-stage build approach to keep the final image small. The first stage (build_jobs-api) 
+# is used for building the Go application, and the second stage (alpine:3.18.4) is used for the final image, containing only
+# the necessary artifacts from the first stage. The ARG BUILD_REF is used to pass build information between stages.
 WORKDIR /service
 CMD ["./jobs-api"]
 

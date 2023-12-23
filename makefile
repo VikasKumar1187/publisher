@@ -1,9 +1,5 @@
-run:
+run-local:
 	go run .\app\services\jobs-api\main.go
-
-build:
-	cd .\app\services\jobs-api\
-	go build -ldflags "-X main.build=local"
 
 test:
 	go test ./... -count=1
@@ -27,7 +23,7 @@ TELEPRESENCE    := datawire/tel2:2.13.1
 VAULT           := hashicorp/vault:1.13
 
 KIND_CLUSTER    := publisher-cluster
-NAMESPACE       := jobs-system
+NAMESPACE       := publisher-system
 PODNAME			:= jobs-pod
 APP             := jobs
 BASE_IMAGE_NAME := publisher/service
@@ -43,6 +39,7 @@ jobs-api:
 
 all: jobs-api
 # =====================================================================================================================================================
+# Bring up/down cluster
 dev-up-local:
 	kind create cluster \
 		--image $(KIND) \
@@ -56,8 +53,7 @@ dev-up: dev-up-local
 dev-down-local:
 	kind delete cluster --name $(KIND_CLUSTER)
 
-dev-down:
-	kind delete cluster --name $(KIND_CLUSTER)
+dev-down: dev-down-local
 # =====================================================================================================================================================
 dev-status:
 	kubectl get nodes -o wide
@@ -68,10 +64,7 @@ dev-load:
 	kind load docker-image $(SERVICE_IMAGE) --name $(KIND_CLUSTER)
 
 dev-apply:
-	kustomize build zarf/k8s/dev/database | kubectl apply -f -
-	kubectl rollout status --namespace=$(NAMESPACE) --watch --timeout=120s sts/database
-
-	kustomize build zarf/k8s/dev/sales | kubectl apply -f -
+	kustomize build zarf/k8s/dev/jobs | kubectl apply -f -
 	kubectl wait pods --namespace=$(NAMESPACE) --selector app=$(APP) --for=condition=Ready
 
 
