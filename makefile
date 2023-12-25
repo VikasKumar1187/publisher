@@ -20,6 +20,12 @@ VERSION         := 0.0.1
 SERVICE_IMAGE   := $(BASE_IMAGE_NAME)/$(SERVICE_NAME):$(VERSION)
 #VERSION        := "0.0.1-$(shell git rev-parse --short HEAD)"
 
+# ==============================================================================
+# Install dependencies
+
+dev-gotooling:
+	go install github.com/divan/expvarmon@latest
+
 # =====================================================================================================================================================
 # Build docker image/s from our source code
 jobs-api:
@@ -88,3 +94,5 @@ tidy:
 	go mod tidy
 	go mod vendor
 
+metrics-view-local:
+	expvarmon -ports="localhost:4000" -vars="build,requests,goroutines,errors,panics,mem:memstats.Alloc"
