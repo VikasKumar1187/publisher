@@ -11,44 +11,30 @@ import (
 
 	"github.com/VikasKumar1187/publisher/foundation/logger"
 	"github.com/ardanlabs/conf/v3"
-	"go.uber.org/automaxprocs/maxprocs"
 	"go.uber.org/zap"
 )
 
 var build = "develop"
 
 func main() {
-
 	log, err := logger.New("JOBS-API")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 	defer log.Sync()
-
 	if err := run(log); err != nil {
 		log.Errorw("startup", "ERROR", err)
 		log.Sync()
 		os.Exit(1)
 	}
-
 }
-
 func run(log *zap.SugaredLogger) error {
-
 	// -------------------------------------------------------------------------
 	// GOMAXPROCS
-
-	if _, err := maxprocs.Set(); err != nil {
-		log.Errorw("Error", "GOMAXPROCS", err)
-		return err
-	}
-
-	log.Infow("startup", "GOMAXPROCS", runtime.GOMAXPROCS(0), "BUILD-Test", build)
-
+	log.Infow("startup", "GOMAXPROCS", runtime.GOMAXPROCS(0), "BUILD", build)
 	// -------------------------------------------------------------------------
 	// Configuration
-
 	cfg := struct {
 		conf.Version
 		Web struct {
@@ -62,10 +48,9 @@ func run(log *zap.SugaredLogger) error {
 	}{
 		Version: conf.Version{
 			Build: build,
-			Desc:  "Service Project",
+			Desc:  "copyright information here",
 		},
 	}
-
 	const prefix = "JOBS"
 	help, err := conf.Parse(prefix, &cfg)
 	if err != nil {
@@ -77,16 +62,23 @@ func run(log *zap.SugaredLogger) error {
 	}
 
 	// -------------------------------------------------------------------------
+	// App Starting
+
+	log.Infow("starting service", "version", build)
+	defer log.Infow("shutdown complete")
+
+	out, err := conf.String(&cfg)
+	if err != nil {
+		return fmt.Errorf("generating config for output: %w", err)
+	}
+	log.Infow("startup", "config", out)
+
+	// -------------------------------------------------------------------------
 
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
-
 	sig := <-shutdown
 	log.Infow("shutdown", "status", "shutdown started", "signal", sig)
 	defer log.Infow("shutdown", "status", "shutdown complete", "signal", sig)
-
-	// -------------------------------------------------------------------------
-	// Shutdown
-
 	return nil
 }

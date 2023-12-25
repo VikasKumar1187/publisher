@@ -1,18 +1,3 @@
-run-local:
-	go run .\app\services\jobs-api\main.go
-
-run-local-help:
-	go run .\app\services\jobs-api\main.go --help
-	
-test:
-	go test ./... -count=1
-	staticcheck ./...
-
-tidy:
-	go mod tidy
-	go mod vendor
-
-
 # =====================================================================================================================================================
 # Define dependencies
 
@@ -80,10 +65,26 @@ dev-update-apply: all dev-load dev-apply
 
 # =====================================================================================================================================================
 dev-logs:
-	kubectl logs --namespace=$(NAMESPACE) -l app=$(APP) --all-containers=true -f --tail=100 --max-log-requests=6
+	kubectl logs --namespace=$(NAMESPACE) -l app=$(APP) --all-containers=true -f --tail=100 --max-log-requests=6 | go run app/tooling/logfmt/main.go -service=$(SERVICE_NAME)
 
 dev-describe-deployment:
 	kubectl describe deployment --namespace=$(NAMESPACE) $(DEPLOYMENTNAME)
 
 dev-describe-jobs:
 	kubectl describe pod --namespace=$(NAMESPACE) -l app=$(APP)
+
+# =====================================================================================================================================================
+run-local:
+	go run .\app\services\jobs-api\main.go go run .\app\tooling\logfmt\main.go -service=$(SERVICE_NAME)
+
+run-local-help:
+	go run .\app\services\jobs-api\main.go --help
+	
+test:
+	go test ./... -count=1
+	staticcheck ./...
+
+tidy:
+	go mod tidy
+	go mod vendor
+
