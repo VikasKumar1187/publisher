@@ -81,7 +81,7 @@ dev-describe-jobs:
 
 # =====================================================================================================================================================
 run-local:
-	go run .\app\services\jobs-api\main.go | go run .\app\tooling\logfmt\main.go -service=$(SERVICE_NAME)
+	go run app/services/jobs-api/main.go | go run app/tooling/logfmt/main.go -service=$(SERVICE_NAME)
 
 run-local-help:
 	go run .\app\services\jobs-api\main.go --help
