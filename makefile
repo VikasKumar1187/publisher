@@ -9,7 +9,7 @@ ALPINE          := alpine:3.19
 KIND            := kindest/node:v1.29.0
 VAULT           := hashicorp/vault:1.15
 ZIPKIN          := openzipkin/zipkin:2.24
-TELEPRESENCE    := datawire/tel2:2.13.1
+TELEPRESENCE    := datawire/tel2:2.17.0
 POSTGRES        := postgres:16.1
 
 # GRAFANA         := grafana/grafana:10.2.0
@@ -90,7 +90,7 @@ dev-up: dev-up-local
 
 
 dev-down-local:
-	telepresence quit -s
+#telepresence quit -s
 	kind delete cluster --name $(KIND_CLUSTER)
 
 dev-down: dev-down-local
