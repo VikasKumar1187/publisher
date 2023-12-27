@@ -4,6 +4,7 @@ resources:
   - ../../base/jobs/
 patches:
   - path: ./dev-jobs-patch-deploy.yaml
+  - path: ./dev-jobs-patch-service.yaml
 images:
   - name: jobs-api-image
     newName: publisher/service/jobs-api

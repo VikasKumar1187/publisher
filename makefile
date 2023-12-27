@@ -50,8 +50,9 @@ dev-brew-common:
 	brew list vault || brew install vault
 
 dev-brew: dev-brew-common
-# it just doesnt work had to install it manually! - binary arch issue : brew install datawire/blackbird/telepresence
+# dosn't work - do manually
 #brew list datawire/blackbird/telepresence || brew install datawire/blackbird/telepresence
+
 dev-docker:
 	docker pull $(GOLANG)
 	docker pull $(ALPINE)
@@ -89,9 +90,12 @@ dev-up: dev-up-local
 
 
 dev-down-local:
+	telepresence quit -s
 	kind delete cluster --name $(KIND_CLUSTER)
 
 dev-down: dev-down-local
+
+
 # =====================================================================================================================================================
 dev-status:
 	kubectl get nodes -o wide
@@ -111,6 +115,12 @@ dev-restart:
 dev-update: all dev-load dev-restart
 
 dev-update-apply: all dev-load dev-apply
+
+
+dev-vikas:
+	kind load docker-image $(TELEPRESENCE) --name $(KIND_CLUSTER)
+	telepresence --context=kind-$(KIND_CLUSTER) helm install
+	telepresence --context=kind-$(KIND_CLUSTER) connect
 
 # =====================================================================================================================================================
 dev-logs:
@@ -139,3 +149,6 @@ tidy:
 
 metrics-view-local:
 	expvarmon -ports="localhost:4000" -vars="build,requests,goroutines,errors,panics,mem:memstats.Alloc"
+
+test-endpoint:
+	curl -il jobs-api.publisher-system.svc.cluster.local:4000/debug/pprof/
