@@ -78,6 +78,7 @@ jobs-api:
 all: jobs-api
 # =====================================================================================================================================================
 # Bring up/down cluster
+# Without telepresence
 dev-up-local:
 	kind create cluster \
 		--image $(KIND) \
@@ -85,16 +86,19 @@ dev-up-local:
 		--config zarf/k8s/dev/kind-config.yaml
 
 	kubectl wait --timeout=120s --namespace=local-path-storage --for=condition=Available deployment/local-path-provisioner
-
-dev-up: dev-up-local
-
+	kind load docker-image $(TELEPRESENCE) --name $(KIND_CLUSTER)
 
 dev-down-local:
-#telepresence quit -s
 	kind delete cluster --name $(KIND_CLUSTER)
 
-dev-down: dev-down-local
+# With telepresence
+dev-up: dev-up-local
+	telepresence --context=kind-$(KIND_CLUSTER) helm install
+	telepresence --context=kind-$(KIND_CLUSTER) connect
 
+dev-down:
+	telepresence quit -s
+	kind delete cluster --name $(KIND_CLUSTER)
 
 # =====================================================================================================================================================
 dev-status:
@@ -116,7 +120,7 @@ dev-update: all dev-load dev-restart
 
 dev-update-apply: all dev-load dev-apply
 
-
+#temp target, will be removed later on
 dev-vikas:
 	kind load docker-image $(TELEPRESENCE) --name $(KIND_CLUSTER)
 	telepresence --context=kind-$(KIND_CLUSTER) helm install
@@ -147,8 +151,15 @@ tidy:
 	go mod tidy
 	go mod vendor
 
+
+metrics-views:
+	expvarmon -ports="$(SERVICE_NAME).$(NAMESPACE).svc.cluster.local:4000" -vars="build,requests,goroutines,errors,panics,mem:memstats.Alloc"
+
 metrics-view-local:
 	expvarmon -ports="localhost:4000" -vars="build,requests,goroutines,errors,panics,mem:memstats.Alloc"
 
 test-endpoint:
-	curl -il jobs-api.publisher-system.svc.cluster.local:4000/debug/pprof/
+	curl -il $(SERVICE_NAME).$(NAMESPACE).svc.cluster.local:4000/debug/vars
+
+test-endpoint-local:
+	curl -il localhost:4000/debug/vars
