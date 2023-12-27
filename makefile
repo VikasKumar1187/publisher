@@ -1,14 +1,24 @@
+SHELL_PATH = /bin/ash
+SHELL = $(if $(wildcard $(SHELL_PATH)),/bin/ash,/bin/bash)
+
 # =====================================================================================================================================================
 # Define dependencies
 
-GOLANG          := golang:1.21
-ALPINE          := alpine:3.18
-KIND            := kindest/node:v1.28.0
-POSTGRES        := postgres:16.0-alpine3.18
+GOLANG          := golang:1.21.5
+ALPINE          := alpine:3.19
+KIND            := kindest/node:v1.29.0
+VAULT           := hashicorp/vault:1.15
 ZIPKIN          := openzipkin/zipkin:2.24
-
 TELEPRESENCE    := datawire/tel2:2.13.1
-VAULT           := hashicorp/vault:1.13
+POSTGRES        := postgres:16.1
+
+# GRAFANA         := grafana/grafana:10.2.0
+# PROMETHEUS      := prom/prometheus:v2.48.0
+# TEMPO           := grafana/tempo:2.3.0
+# LOKI            := grafana/loki:2.9.0
+# PROMTAIL        := grafana/promtail:2.9.0
+# POSTGRES        := postgres:16.0-alpine3.18
+
 
 KIND_CLUSTER    := publisher-cluster
 NAMESPACE       := publisher-system
@@ -25,11 +35,44 @@ SERVICE_IMAGE   := $(BASE_IMAGE_NAME)/$(SERVICE_NAME):$(VERSION)
 
 dev-gotooling:
 	go install github.com/divan/expvarmon@latest
+	go install github.com/rakyll/hey@latest
+	go install honnef.co/go/tools/cmd/staticcheck@latest
+	go install golang.org/x/vuln/cmd/govulncheck@latest
+	go install golang.org/x/tools/cmd/goimports@latest
+
+dev-brew-common:
+	brew update
+	brew tap hashicorp/tap
+	brew list kind || brew install kind
+	brew list kubectl || brew install kubectl
+	brew list kustomize || brew install kustomize
+	brew list pgcli || brew install pgcli
+	brew list vault || brew install vault
+
+dev-brew: dev-brew-common
+# it just doesnt work had to install it manually! - binary arch issue : brew install datawire/blackbird/telepresence
+#brew list datawire/blackbird/telepresence || brew install datawire/blackbird/telepresence
+dev-docker:
+	docker pull $(GOLANG)
+	docker pull $(ALPINE)
+	docker pull $(KIND)
+	docker pull $(VAULT)
+	docker pull $(ZIPKIN)
+	docker pull $(TELEPRESENCE)
+	docker pull $(POSTGRES)
+
+# docker pull $(GRAFANA)
+# docker pull $(PROMETHEUS)
+# docker pull $(TEMPO)
+# docker pull $(LOKI)
+# docker pull $(PROMTAIL)
+
+
 
 # =====================================================================================================================================================
 # Build docker image/s from our source code
 jobs-api:
-	docker build --progress=plain -t $(SERVICE_IMAGE) --build-arg BUILD_REF="$(VERSION)" -f zarf/docker/dockerfile.jobs-api .
+	docker build -t $(SERVICE_IMAGE) --build-arg BUILD_REF="$(VERSION)" -f zarf/docker/dockerfile.jobs-api .
 
 all: jobs-api
 # =====================================================================================================================================================
