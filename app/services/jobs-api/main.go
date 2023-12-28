@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/VikasKumar1187/publisher/app/services/jobs-api/handlers"
 	"github.com/VikasKumar1187/publisher/business/web/v1/debug"
 	"github.com/VikasKumar1187/publisher/foundation/logger"
 	"github.com/ardanlabs/conf/v3"
@@ -20,6 +21,7 @@ import (
 var build = "develop"
 
 func main() {
+
 	log, err := logger.New("JOBS-API")
 	if err != nil {
 		fmt.Println(err)
@@ -32,12 +34,16 @@ func main() {
 		os.Exit(1)
 	}
 }
+
 func run(log *zap.SugaredLogger) error {
+
 	// -------------------------------------------------------------------------
 	// GOMAXPROCS
 	log.Infow("startup", "GOMAXPROCS", runtime.GOMAXPROCS(0), "BUILD", build)
+
 	// -------------------------------------------------------------------------
 	// Configuration
+
 	cfg := struct {
 		conf.Version
 		Web struct {
@@ -95,9 +101,14 @@ func run(log *zap.SugaredLogger) error {
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
 
+	apiMux := handlers.APIMux(handlers.APIMuxConfig{
+		Shutdown: shutdown,
+		Log:      log,
+	})
+
 	api := http.Server{
 		Addr:         cfg.Web.APIHost,
-		Handler:      nil,
+		Handler:      apiMux,
 		ReadTimeout:  cfg.Web.ReadTimeout,
 		WriteTimeout: cfg.Web.WriteTimeout,
 		IdleTimeout:  cfg.Web.IdleTimeout,
