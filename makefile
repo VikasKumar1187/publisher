@@ -162,4 +162,4 @@ test-endpoint:
 	curl -il $(SERVICE_NAME).$(NAMESPACE).svc.cluster.local:3000/test
 
 test-endpoint-local:
-	curl -il localhost:4000/debug/test
+	curl -il localhost:3000/test
