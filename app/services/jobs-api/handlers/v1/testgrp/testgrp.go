@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"net/http"
 
+	v1 "github.com/VikasKumar1187/publisher/business/web/v1"
 	"github.com/VikasKumar1187/publisher/foundation/web"
 )
 
@@ -17,7 +18,8 @@ func Test(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	// hanlde OK response
 
 	if n := rand.Intn(100); n%2 == 0 {
-		return errors.New("UNTRUSTED ERROR")
+		//return errors.New("UNTRUSTED ERROR")
+		return v1.NewRequestError(errors.New("TRUSTED ERROR"), http.StatusBadRequest)
 	}
 
 	status := struct {
