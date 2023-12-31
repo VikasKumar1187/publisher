@@ -61,7 +61,7 @@ func genToken() error {
 		return fmt.Errorf("signing token: %w", err)
 	}
 
-	fmt.Println("*********** TOKEN ************")
+	fmt.Println("\n*********** TOKEN ************")
 	fmt.Println(str)
 	fmt.Print("\n")
 
@@ -84,6 +84,31 @@ func genToken() error {
 	}
 
 	fmt.Print("\n")
+
+	// -------------------------------------------------------------------------
+
+	parser := jwt.NewParser(jwt.WithValidMethods([]string{jwt.SigningMethodRS256.Name}))
+
+	var clm struct {
+		jwt.RegisteredClaims
+		Roles []string
+	}
+
+	kf := func(jwt *jwt.Token) (interface{}, error) {
+		return &privateKey.PublicKey, nil
+	}
+
+	tkn, err := parser.ParseWithClaims(str, &clm, kf)
+	if err != nil {
+		return fmt.Errorf("parsing with claims: %w", err)
+	}
+
+	if !tkn.Valid {
+		return fmt.Errorf("token not valid")
+	}
+
+	fmt.Println("TOKEN VALIDATED")
+	fmt.Printf("%#v\n", clm)
 
 	return nil
 
