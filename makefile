@@ -176,3 +176,10 @@ test-endpoint-local:
 
 run-scratch:
 	go run app/tooling/scratch/main.go
+
+test-endpoint-auth:
+	curl -il -H "Authorization: Bearer ${TOKEN}" $(SERVICE_NAME).$(NAMESPACE).svc.cluster.local:3000/test/auth
+
+test-endpoint-auth-local:
+	curl -il -H "Authorization: Bearer ${TOKEN}" localhost:3000/test/auth
+
