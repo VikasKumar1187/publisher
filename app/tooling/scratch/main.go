@@ -1,4 +1,5 @@
 package main
+
 import (
 	"crypto/rand"
 	"crypto/rsa"
@@ -62,6 +63,26 @@ func genToken() error {
 
 	fmt.Println("*********** TOKEN ************")
 	fmt.Println(str)
+	fmt.Print("\n")
+
+	// -------------------------------------------------------------------------
+
+	asn1Bytes, err := x509.MarshalPKIXPublicKey(&privateKey.PublicKey)
+	if err != nil {
+		return fmt.Errorf("marshaling public key: %w", err)
+	}
+
+	publicBlock := pem.Block{
+		Type:  "PUBLIC KEY",
+		Bytes: asn1Bytes,
+	}
+
+	fmt.Println("*********** PUBLIC KEY ************")
+
+	if err := pem.Encode(os.Stdout, &publicBlock); err != nil {
+		return fmt.Errorf("encoding to public file: %w", err)
+	}
+
 	fmt.Print("\n")
 
 	return nil
