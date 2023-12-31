@@ -29,7 +29,12 @@ FROM alpine:3.18.4
 ARG BUILD_REF
 
 # Copies the built Go binary (jobs-api) from the build stage to the /service directory of the new stage.
-COPY --from=build_jobs-api /service/app/services/jobs-api/jobs-api /service/jobs-api
+#COPY --from=build_jobs-api /service/app/services/jobs-api/jobs-api /service/jobs-api
+
+RUN addgroup -g 1000 -S jobs && \
+    adduser -u 1000 -h /service -G jobs -S jobs
+COPY --from=build_jobs-api --chown=jobs:jobs /service/zarf/keys/. /service/zarf/keys/.
+COPY --from=build_jobs-api --chown=jobs:jobs /service/app/services/jobs-api/jobs-api /service/jobs-api
 
 # Note : This Dockerfile follows a multi-stage build approach to keep the final image small. The first stage (build_jobs-api) 
 # is used for building the Go application, and the second stage (alpine:3.18.4) is used for the final image, containing only
