@@ -170,3 +170,6 @@ test-endpoint:
 
 test-endpoint-local:
 	curl -il localhost:3000/test
+
+run-scratch:
+	go run app/tooling/scratch/main.go
