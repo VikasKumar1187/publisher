@@ -14,12 +14,11 @@ import (
 func Test(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	// Vaidate data
 	// Call into the business layer
-	// Rteurns errros
-	// hanlde OK response
 
 	if n := rand.Intn(100); n%2 == 0 {
 		//return errors.New("UNTRUSTED ERROR")
 		return v1.NewRequestError(errors.New("TRUSTED ERROR"), http.StatusBadRequest)
+		//panic("OH NO  Panic!")
 	}
 
 	status := struct {
