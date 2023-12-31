@@ -77,8 +77,6 @@ func genToken() error {
 		Bytes: asn1Bytes,
 	}
 
-	fmt.Println("*********** PUBLIC KEY ************")
-
 	if err := pem.Encode(os.Stdout, &publicBlock); err != nil {
 		return fmt.Errorf("encoding to public file: %w", err)
 	}
