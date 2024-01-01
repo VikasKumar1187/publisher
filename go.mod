@@ -9,6 +9,7 @@ require (
 	github.com/google/uuid v1.5.0
 	github.com/open-policy-agent/opa v0.60.0
 	go.uber.org/zap v1.26.0
+	golang.org/x/crypto v0.17.0
 )
 
 require (
