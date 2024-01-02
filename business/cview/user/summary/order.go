@@ -1,4 +1,4 @@
-package usersummary
+package summary
 
 import "github.com/VikasKumar1187/publisher/business/data/order"
 
